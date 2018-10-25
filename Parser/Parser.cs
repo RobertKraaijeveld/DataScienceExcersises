@@ -9,9 +9,9 @@ namespace DataScienceFinalRetake
     {
         public static string FILE_LOCATION = "wine.csv";
 
-        public static List<Vector> ParseToVectors()
+        public static Dictionary<int, Vector> ParseToVectors()
         {
-            var vectors = new List<Vector>();
+            var vectors = new Dictionary<int, Vector>();
             int columnCounter = 0;
 
             // Console.WriteLine(FILE_LOCATION.)
@@ -26,21 +26,17 @@ namespace DataScienceFinalRetake
                 valuesMatrix[i] = lines[i].Split(',').Select(chr => double.Parse(chr.ToString()))
                                           .ToArray();
             }
+                
 
-            Console.WriteLine("Matrix 1D length = " + valuesMatrix[0][0]);
-
-            while(columnCounter < Vector.DIMENSION)
+            for(int i = 0; i < valuesMatrix.Length; i++)
             {
                 var valuesForCurrentVector = new List<double>();
 
-                // Getting the values at this column in the matrix
-                for(int i = 0; i < valuesMatrix.Length; i++)
+                for(int j = 0; j < valuesMatrix[i].Length; j++)
                 {
-                    valuesForCurrentVector.Add(valuesMatrix[i][columnCounter]);
+                    valuesForCurrentVector.Add(valuesMatrix[i][j]);
                 }
-
-                vectors.Add(new Vector(valuesForCurrentVector));
-                columnCounter++;
+                vectors.Add(i, new Vector(valuesForCurrentVector));
             }
             return vectors;
         }

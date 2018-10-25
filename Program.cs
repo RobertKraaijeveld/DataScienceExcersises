@@ -6,7 +6,7 @@ namespace DataScienceFinalRetake
     {
         static void Main(string[] args)
         {
-            KMeansController.Run(5);
+            KMeansController.Run(4, 50);
         }
     }
 }

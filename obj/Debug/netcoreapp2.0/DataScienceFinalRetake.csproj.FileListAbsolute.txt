@@ -1,0 +1,11 @@
+C:\DataScienceFinalRetake\bin\Debug\netcoreapp2.0\DataScienceFinalRetake.deps.json
+C:\DataScienceFinalRetake\bin\Debug\netcoreapp2.0\DataScienceFinalRetake.runtimeconfig.json
+C:\DataScienceFinalRetake\bin\Debug\netcoreapp2.0\DataScienceFinalRetake.runtimeconfig.dev.json
+C:\DataScienceFinalRetake\bin\Debug\netcoreapp2.0\DataScienceFinalRetake.dll
+C:\DataScienceFinalRetake\bin\Debug\netcoreapp2.0\DataScienceFinalRetake.pdb
+C:\DataScienceFinalRetake\obj\Debug\netcoreapp2.0\DataScienceFinalRetake.csproj.CoreCompileInputs.cache
+C:\DataScienceFinalRetake\obj\Debug\netcoreapp2.0\DataScienceFinalRetake.AssemblyInfoInputs.cache
+C:\DataScienceFinalRetake\obj\Debug\netcoreapp2.0\DataScienceFinalRetake.AssemblyInfo.cs
+C:\DataScienceFinalRetake\obj\Debug\netcoreapp2.0\DataScienceFinalRetake.dll
+C:\DataScienceFinalRetake\obj\Debug\netcoreapp2.0\DataScienceFinalRetake.pdb
+C:\DataScienceFinalRetake\obj\Debug\netcoreapp2.0\DataScienceFinalRetake.csprojResolveAssemblyReference.cache
