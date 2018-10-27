@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace DataScienceFinalRetake
 {
-    public class KMeansIteration
+    public class KMeans
     {
         private Dictionary<int, Vector> PreviousIterationCentroidPositions = new Dictionary<int, Vector>();
         public Dictionary<int, Centroid> AllCentroids { get; set; } // KV of { Id, Centroid }
@@ -14,7 +14,7 @@ namespace DataScienceFinalRetake
         public double FinalSSE { get; set; }
         public double FinalSilhouette { get; set; }
 
-        public KMeansIteration(int K, Dictionary<int, Vector> inputVectors)
+        public KMeans(int K, Dictionary<int, Vector> inputVectors)
         {
             // Populating VectorIdPerCentroidId dictionary
             VectorIdPerCentroidId = new Dictionary<int, int>();

@@ -6,7 +6,11 @@ namespace DataScienceFinalRetake
     {
         static void Main(string[] args)
         {
-            KMeansController.Run(4, 50);
+            var vectors = Parser.ParseToVectors();
+            var kmeansAlgo = new KMeans(K: 4, inputVectors: vectors);
+            
+            kmeansAlgo.IterateUntilConvergence();
+            kmeansAlgo.PrintResults();
         }
     }
 }

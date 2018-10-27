@@ -5,7 +5,7 @@ namespace DataScienceFinalRetake
 {
     public class Vector
     {
-        public static readonly IDistance Distance = new EuclideanDistance();
+        public static readonly IDistance Distance = new CosineDistance();
         public int CentroidId;
         public static readonly int DIMENSION = 32;
         public List<double> values = new List<double>();
@@ -49,6 +49,29 @@ namespace DataScienceFinalRetake
             }    
             return summedVector;
         }
+
+        public double DotProduct(Vector anotherVector)
+        {
+            CheckVectorLengths(anotherVector);
+
+            double result = 0;
+            for(int i = 0; i < anotherVector.values.Count; i++)
+            {
+                result += (this.values[i] * anotherVector.values[i]);
+            }    
+            return result;
+        } 
+
+       public double EuclideanLength()
+        {
+            double result = 0;
+            for(int i = 0; i < this.values.Count; i++)
+            {
+                result += Math.Pow(this.values[i], 2);
+            }    
+            return Math.Sqrt(result);
+        } 
+
 
         public static Vector GetRandomVector(int rowCount)
         {
