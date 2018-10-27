@@ -20,7 +20,7 @@ namespace DataScienceFinalRetake
                 iterations.Add(it);
             }
 
-            var bestIteration = iterations.OrderByDescending(x => x.FinalSilhouette)
+            var bestIteration = iterations.OrderBy(x => x.FinalSSE)
                                           .First();
             bestIteration.PrintResults();
         }
