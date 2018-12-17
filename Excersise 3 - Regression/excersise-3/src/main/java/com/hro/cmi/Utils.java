@@ -30,7 +30,7 @@ public class Utils
         return random.nextDouble() * (max - min) + min;
     }
 
-    public static int getExistingRandomIndex(int[] a, int[] b)
+    public static int getExistingRandomIndex(byte[] a, byte[] b)
     {
         Random random = new Random();
         //this makes sure the random index is not beyond one of the parents' length 
@@ -40,11 +40,11 @@ public class Utils
             return random.nextInt(a.length - 1);                
     } 
 
-    public static Tuple<int[], int[]> splitArrayOnIndex(int[] array, int index)
+    public static Tuple<byte[], byte[]> splitArrayOnIndex(byte[] array, int index)
     {
-        int[] firstArray = Arrays.copyOfRange(array, 0, index);
-        int[] secondArray = Arrays.copyOfRange(array, index, array.length);
-        return new Tuple<int[], int[]>(firstArray, secondArray);
+        byte[] firstArray = Arrays.copyOfRange(array, 0, index);
+        byte[] secondArray = Arrays.copyOfRange(array, index, array.length);
+        return new Tuple<byte[], byte[]>(firstArray, secondArray);
     }
 
     public static double sum(double...values) 
@@ -67,18 +67,27 @@ public class Utils
         return result;
     }
 
-    
-
-    public static int[] concatenate(int[] a, int[] b)
+    public static byte[] concatenate(byte[] a, byte[] b)
     {
         int aLen = a.length;
         int bLen = b.length;
     
         @SuppressWarnings("unchecked")
-        int[] c = (int[]) Array.newInstance(a.getClass().getComponentType(), aLen + bLen);
+        byte[] c = (byte[]) Array.newInstance(a.getClass().getComponentType(), aLen + bLen);
         System.arraycopy(a, 0, c, 0, aLen);
         System.arraycopy(b, 0, c, aLen, bLen);
     
         return c;
+    }
+
+    public static double[][] To2DArrayWithSingle2ndElement(double[] oneDimArray)
+    {
+        double[][] ret = new double[oneDimArray.length][1];
+
+        for (int i = 0; i < oneDimArray.length; i++) 
+        {
+            ret[i][0] = oneDimArray[i];    
+        }
+        return ret;
     }
 }

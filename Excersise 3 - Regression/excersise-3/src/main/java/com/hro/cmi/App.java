@@ -8,6 +8,8 @@ import java.util.ArrayList;
 import javax.sound.sampled.Line;
 
 import com.hro.cmi.GeneticAlgorithm.GeneticAlgorithm;
+import com.hro.cmi.GeneticAlgorithm.GeneticIndividual;
+import com.hro.cmi.Regression.LinearRegression;
 
 import java.text.*;
 
@@ -15,27 +17,12 @@ public class App extends PApplet
 {
     private static final int APPLET_WIDTH = 1040;
     private static final int APPLET_HEIGHT = 800;
-    private static ArrayList<Vector> inputVectors = Parser.parseCsvToPoints("C:\\Projects\\DataScienceFinalRetake\\Excersise 3 - Regression\\excersise-3\\docs\\RetailMart.csv");
-    
-    private static final int YAXIS_OFFSET = -25;
+    private static final int YAXIS_OFFSET = -20;
     private static final int XAXIS_OFFSET = 18;
-
 
     public static void main( String[] args )
     {
-        // ArrayList<Vector> trainingSet = new ArrayList<>();
-        // ArrayList<Vector> testSet = new ArrayList<>();
-
-        // for(int i = 0; i < inputVectors.size(); i++)
-        // {
-        //     if(i <= inputVectors.size() / 2) trainingSet.add(inputVectors.get(i));
-        //     else testSet.add(inputVectors.get(i));
-        // }
-        // LinearRegression bestRegression = LinearRegression.Train(trainingSet);
-        // ArrayList<Vector> predictions = bestRegression.Predict(testSet);
-        //  PApplet.main(new String[] { App.class.getName() });
-        GeneticAlgorithm algo = new GeneticAlgorithm(0.8, 0.1, true, 50, 100);
-        algo.Run();
+        PApplet.main(new String[] { App.class.getName() });
     }
 
     public void setup() {
@@ -49,20 +36,40 @@ public class App extends PApplet
         background(225, 225, 225);
         fill(0,0,0);
 
+        // Getting training/testing sets
+        ArrayList<Vector> trainingSet = Parser.parseCsvToPoints("C:\\Projects\\DataScienceFinalRetake\\Excersise 3 - Regression\\excersise-3\\docs\\TrainingSet.csv");
+        ArrayList<Vector> testSet = Parser.parseCsvToPoints("C:\\Projects\\DataScienceFinalRetake\\Excersise 3 - Regression\\excersise-3\\docs\\TestSet.csv");
 
+        // Training using genetic algo for getting best betas
+        GeneticAlgorithm algo = new GeneticAlgorithm(trainingSet, 0.8, 0.0, true, 50, 50);
+        GeneticIndividual bestIndividual = algo.Run();
         
+        double[] algoBetas = GeneticIndividual.ToDoubles(bestIndividual);
+        double[] bookBetas = new double[]
+        {
+            -0.58,	-0.13, -0.15,	0.03,	2.37,	-2.29,	-2.03,	4.08,	2.48	,2.95,	1.25	,1.94	,1.10,	1.31	,-1.45,	1.80,	1.39	,-1.56,	2.08	,-0.24
+        };
+
+        // Running on test set using computed/book betas
+        LinearRegression regression = new LinearRegression();
+
+        ArrayList<Vector> vectorsWithRobertsPredictions = regression.Predict(algoBetas, testSet, true);
+        ArrayList<Vector> vectorsWithBookPredictions = regression.Predict(bookBetas, testSet, true);
+
+        // TODO: ADD SSE
+        double robertsSSE = regression.GetSse(vectorsWithRobertsPredictions);
+        double bookSSE = regression.GetSse(vectorsWithBookPredictions);
 
 
+        double[] cutOffVals = new double[]
+        {
+            0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95, 1, 1.05, 1.1, 1.15, 1.2, 1.25
+        };
 
-        // drawAxises();
-
-        // drawBaseValuesAndAxisesValues();
-
-        // drawSES();    
-        // drawDES();
-        // drawTES();
-
-        // drawLegend();
+        ArrayList<Tuple<Float, Float>> robertsCurve = regression.GetRocCurve(vectorsWithRobertsPredictions, cutOffVals);
+        ArrayList<Tuple<Float, Float>> bookCurve = regression.GetRocCurve(vectorsWithBookPredictions, cutOffVals);
+        
+        drawROC(robertsCurve);
     }
 
 
@@ -154,60 +161,41 @@ public class App extends PApplet
     * Methods for drawing regressions
     */
 
-    // private void drawSES()
-    // {
-    //     int foreCastAmount = 3;
-    //     SES sesForecast = new SES(this.swordSalesPoints, foreCastAmount);
-    //     ArrayList<Vector2> sesSwordSalesPoints = sesForecast.runForecastWithBestError();
+    private void drawROC(ArrayList<Tuple<Float, Float>> points)
+    {
+        stroke(0, 0, 255);                                  
+        fill(0, 0, 255);
         
-    //     stroke(0, 0, 255);                                  
-    //     fill(0, 0, 255);
-    //     drawGivenVectors(sesSwordSalesPoints);
+        float leftPadding = 50.0f;        
+        float firstPointXposition = 40.0f;
+        Tuple<Float, Float> previousPointVector = new Tuple<Float, Float>(firstPointXposition, 120.0f);
 
-    //     textSize(18);
-    //     fill(0, 0, 255);
-    //     text("SES Measurements", 10.0f, 145.0f);
+        for (Tuple<Float, Float> currentPoint : points) 
+        {
+            float shiftedXValue = ((currentPoint.Item1 * XAXIS_OFFSET) + leftPadding) * 10;
+            float shiftedYValue = ((currentPoint.Item2 - YAXIS_OFFSET)) * 20;
 
-    //     textSize(13);
-    //     fill(0,0,0);
-    //     text("SES Alpha: " + Double.toString(sesForecast.bestVariables.alpha).substring(0, 6), 10.0f, 170.0f);
-    //     text("SES Error: " + Double.toString(sesForecast.bestVariables.error).substring(0, 6), 10.0f, 185.0f);
-    // }
-
-
-    // private void drawGivenVectors(ArrayList<Vector2> vectors)
-    // {
-    //     double leftPadding = 40.0f;        
-    //     double firstPointXposition = 40.0f;
-    //     Vector2 previousPointVector = new Vector2(firstPointXposition, 120.0f);
-
-    //     for (Vector2 currentVector : vectors) 
-    //     {
-    //         double shiftedXValue = (currentVector.x * XAXIS_OFFSET) + leftPadding;
-    //         double shiftedYValue = currentVector.y - YAXIS_OFFSET;
-
-    //         //inverting so we dont have to map/flip the y values
-    //         invertYAxis();
+            //inverting so we dont have to map/flip the y values
+            invertYAxis();
            
-    //         ellipse((float) shiftedXValue, (float) shiftedYValue, 5.0f, 5.0f);
+            ellipse((float) shiftedXValue, (float) shiftedYValue, 5.0f, 5.0f);
            
-    //         if(previousPointVector.x != firstPointXposition)
-    //             line((float) previousPointVector.x, (float) previousPointVector.y, (float) shiftedXValue, (float) shiftedYValue);
+            if(previousPointVector.Item1 != firstPointXposition)
+            {
+                line((float) previousPointVector.Item1, (float) previousPointVector.Item2, (float) shiftedXValue, (float) shiftedYValue);
+            }
 
-    //         previousPointVector.x = shiftedXValue; 
-    //         previousPointVector.y = shiftedYValue;
+            previousPointVector.Item1 = shiftedXValue; 
+            previousPointVector.Item2 = shiftedYValue;
 
-    //         popMatrix();
-    //     }
-    // }
+            popMatrix();
+        }
+    }
 
-
-    //temporarily inverting y values is used because processings' y = 0 starts at the top left         
     private void invertYAxis()
     {
         pushMatrix();
         translate(0, height);
         scale(1,-1);
     }
-
 }

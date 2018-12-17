@@ -8,13 +8,13 @@ import Jama.QRDecomposition;
 // SOURCE: https://introcs.cs.princeton.edu/java/97data/MultipleLinearRegression.java.html
 public class MultipleLinearRegression 
 {
-    private final int N; // number of
-    private final int p; // number of dependent variables
-    private final Matrix beta; // regression coefficients
+    private int N; // number of independent variables
+    private int p; // number of dependent variables
+    private Matrix beta; // regression coefficients
     private double SSE; // sum of squared
     private double SST; // sum of squared
 
-    public MultipleLinearRegression(double[][] betas, Vector vector) 
+    public double RunAndReturnSSE(double[][] betas, Vector vector) 
     {
         if (betas.length != vector.values.length) throw new RuntimeException("dimensions don't agree");
         N = vector.values.length;
@@ -48,6 +48,7 @@ public class MultipleLinearRegression
         Matrix residuals = betasMatrix.times(beta).minus(vectorMatrix);
         SSE = residuals.norm2() * residuals.norm2();
 
+        return SSE;
     }
 
     public double beta(int j) {

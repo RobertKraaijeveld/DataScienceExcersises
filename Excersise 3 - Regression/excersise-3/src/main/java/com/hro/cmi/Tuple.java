@@ -2,8 +2,8 @@ package com.hro.cmi;
 
 public class Tuple<X, Y>
 {
-    public final X Item1;
-    public final Y Item2;
+    public X Item1;
+    public Y Item2;
 
     public Tuple(X x, Y y) 
     {

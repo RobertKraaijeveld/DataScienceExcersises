@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<testsuite tests="1" failures="0" name="com.hro.cmi.AppTest" time="0.002" errors="0" skipped="0">
+<testsuite tests="1" failures="0" name="com.hro.cmi.AppTest" time="0.001" errors="0" skipped="0">
   <properties>
     <property name="java.runtime.name" value="Java(TM) SE Runtime Environment"/>
     <property name="java.vm.version" value="11.0.1+13-LTS"/>
     <property name="sun.boot.library.path" value="C:\Program Files\Java\jdk-11.0.1\bin"/>
     <property name="user.country.format" value="NL"/>
-    <property name="maven.multiModuleProjectDirectory" value="C:\Projects\DataMiningExcersises-master\DataMiningExcersises-master\Excersise 3 - SES&amp; DES\excersise-3"/>
+    <property name="maven.multiModuleProjectDirectory" value="C:\Projects\DataScienceFinalRetake\Excersise 3 - Regression\excersise-3"/>
     <property name="java.vm.vendor" value="Oracle Corporation"/>
     <property name="java.vendor.url" value="http://java.oracle.com/"/>
     <property name="guice.disable.misplaced.annotation.check" value="true"/>
@@ -16,7 +16,7 @@
     <property name="user.country" value="US"/>
     <property name="sun.java.launcher" value="SUN_STANDARD"/>
     <property name="java.vm.specification.name" value="Java Virtual Machine Specification"/>
-    <property name="user.dir" value="C:\Projects\DataMiningExcersises-master\DataMiningExcersises-master\Excersise 3 - SES&amp; DES\excersise-3"/>
+    <property name="user.dir" value="C:\Projects\DataScienceFinalRetake\Excersise 3 - Regression\excersise-3"/>
     <property name="java.vm.compressedOopsMode" value="Zero based"/>
     <property name="java.runtime.version" value="11.0.1+13-LTS"/>
     <property name="java.awt.graphicsenv" value="sun.awt.Win32GraphicsEnvironment"/>
@@ -29,7 +29,7 @@
     <property name="os.name" value="Windows 10"/>
     <property name="classworlds.conf" value="C:\Program Files\apache-maven-3.6.0-bin\bin\..\bin\m2.conf"/>
     <property name="sun.jnu.encoding" value="Cp1252"/>
-    <property name="java.library.path" value="C:\Program Files\Java\jdk-11.0.1\bin;C:\WINDOWS\Sun\Java\bin;C:\WINDOWS\system32;C:\WINDOWS;C:\Program Files (x86)\Common Files\Oracle\Java\javapath;C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0\;C:\Program Files (x86)\NVIDIA Corporation\PhysX\Common;D:\Programs\Git\cmd;C:\Program Files\dotnet\;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0\;C:\WINDOWS\System32\OpenSSH\;C:\Program Files\Microsoft VS Code\bin;C:\Program Files\apache-maven-3.6.0-bin\bin;C:\Program Files\Java\jdk-11.0.1\bin;C:\Users\Robert\AppData\Local\Microsoft\WindowsApps;;C:\Users\Robert\.dotnet\tools;C:\Program Files\Microsoft VS Code\bin;C:\Users\Robert\AppData\Local\Microsoft\WindowsApps;."/>
+    <property name="java.library.path" value="C:\Program Files\Java\jdk-11.0.1\bin;C:\WINDOWS\Sun\Java\bin;C:\WINDOWS\system32;C:\WINDOWS;C:\Program Files (x86)\Common Files\Oracle\Java\javapath;C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0\;C:\Program Files (x86)\NVIDIA Corporation\PhysX\Common;C:\Program Files\dotnet\;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0\;C:\WINDOWS\System32\OpenSSH\;C:\Program Files\Microsoft VS Code\bin;C:\Program Files\apache-maven-3.6.0-bin\bin;C:\Program Files\Java\jdk-11.0.1\bin;D:\Programs\Git\cmd;C:\Program Files\Microsoft SQL Server\130\Tools\Binn\;C:\Users\Robert\AppData\Local\Microsoft\WindowsApps;;C:\Users\Robert\.dotnet\tools;C:\Program Files\Microsoft VS Code\bin;C:\Users\Robert\AppData\Local\Microsoft\WindowsApps;C:\Program Files\Docker Toolbox;."/>
     <property name="maven.conf" value="C:\Program Files\apache-maven-3.6.0-bin\bin\../conf"/>
     <property name="jdk.debug" value="release"/>
     <property name="java.class.version" value="55.0"/>
@@ -64,5 +64,5 @@
     <property name="sun.desktop" value="windows"/>
     <property name="sun.cpu.isalist" value="amd64"/>
   </properties>
-  <testcase classname="com.hro.cmi.AppTest" name="testApp" time="0.002"/>
+  <testcase classname="com.hro.cmi.AppTest" name="testApp" time="0.001"/>
 </testsuite>

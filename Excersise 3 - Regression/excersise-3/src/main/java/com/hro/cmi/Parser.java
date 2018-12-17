@@ -33,9 +33,9 @@ class Parser
                         String currentColumnValue = delimiterSeparatedLine[i];
 
                         // last column indicates result: 1 == pregnant, 0 == not.
-                        if(i == delimiterSeparatedLine.length)
+                        if(i == 19)
                         {
-                            pregnantOrNotForThisLine = Boolean.parseBoolean(currentColumnValue);
+                            if(currentColumnValue.equals("1")) pregnantOrNotForThisLine = true;
                         }
                         else
                         {
