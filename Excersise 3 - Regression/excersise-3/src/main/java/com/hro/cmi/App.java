@@ -15,9 +15,9 @@ import java.text.*;
 
 public class App extends PApplet
 {
-    private static final int APPLET_WIDTH = 1040;
+    private static final int APPLET_WIDTH = 700;
     private static final int APPLET_HEIGHT = 800;
-    private static final int YAXIS_OFFSET = -20;
+    private static final int YAXIS_OFFSET = -1;
     private static final int XAXIS_OFFSET = 18;
 
     public static void main( String[] args )
@@ -41,13 +41,18 @@ public class App extends PApplet
         ArrayList<Vector> testSet = Parser.parseCsvToPoints("C:\\Projects\\DataScienceFinalRetake\\Excersise 3 - Regression\\excersise-3\\docs\\TestSet.csv");
 
         // Training using genetic algo for getting best betas
-        GeneticAlgorithm algo = new GeneticAlgorithm(trainingSet, 0.8, 0.0, true, 50, 50);
+        double crossoverRate = 0.7;
+        double mutationRate = 0.2;
+        int populationSize = 50;
+        int generations = 10;
+
+        GeneticAlgorithm algo = new GeneticAlgorithm(trainingSet, crossoverRate, mutationRate, true, populationSize, generations);
         GeneticIndividual bestIndividual = algo.Run();
         
         double[] algoBetas = GeneticIndividual.ToDoubles(bestIndividual);
         double[] bookBetas = new double[]
         {
-            -0.58,	-0.13, -0.15,	0.03,	2.37,	-2.29,	-2.03,	4.08,	2.48	,2.95,	1.25	,1.94	,1.10,	1.31	,-1.45,	1.80,	1.39	,-1.56,	2.08	,-0.24
+            -0.58,	-0.13, -0.15,	0.03, 2.37,	-2.29, -2.03, 4.08,	2.48, 2.95,	1.25, 1.94, 1.10, 1.31, -1.45, 1.80, 1.39, -1.56, 2.08, -0.24
         };
 
         // Running on test set using computed/book betas
@@ -56,10 +61,8 @@ public class App extends PApplet
         ArrayList<Vector> vectorsWithRobertsPredictions = regression.Predict(algoBetas, testSet, true);
         ArrayList<Vector> vectorsWithBookPredictions = regression.Predict(bookBetas, testSet, true);
 
-        // TODO: ADD SSE
         double robertsSSE = regression.GetSse(vectorsWithRobertsPredictions);
         double bookSSE = regression.GetSse(vectorsWithBookPredictions);
-
 
         double[] cutOffVals = new double[]
         {
@@ -69,7 +72,17 @@ public class App extends PApplet
         ArrayList<Tuple<Float, Float>> robertsCurve = regression.GetRocCurve(vectorsWithRobertsPredictions, cutOffVals);
         ArrayList<Tuple<Float, Float>> bookCurve = regression.GetRocCurve(vectorsWithBookPredictions, cutOffVals);
         
+        drawGeneticAlgoValues(robertsSSE, bookSSE, crossoverRate, mutationRate, populationSize, generations);
+        drawLegend();
+        drawAxises();
+
+        stroke(0, 0, 255);                                  
+        fill(0, 0, 255);
         drawROC(robertsCurve);
+
+        stroke(255, 0, 0);                                  
+        fill(255, 0, 0);
+        drawROC(bookCurve);
     }
 
 
@@ -77,43 +90,72 @@ public class App extends PApplet
     * Methods for drawing UI 
     */
 
+    private void drawGeneticAlgoValues(double robertsSSE, double bookSSE, double crossoverRate, double mutationRate, int populationSize, int generations)
+    {
+        textSize(12);
+        fill(0,0,0);
+
+        text("Genetic Algo SSE: " + robertsSSE, 95, 680.0f);       
+        text("Book SSE: " + bookSSE, 95, 700.0f);       
+        text("Crossover rate: " + crossoverRate, 95, 720.0f);       
+        text("Mutation rate: " + mutationRate, 95, 740.0f);       
+        text("Population size: " + populationSize, 95, 760.0f);       
+        text("Amount of generations: " + generations, 95, 780.0f);       
+    }
+        
+
     private void drawLegend()
     {
-        // textSize(16);
+        textSize(16);
 
-        // fill(255, 0, 0);
-        // text("Red line: Original values", 600.0f, 90.0f);
+        fill(0, 0, 255);
+        text("Blue line: ROC Curve using implemented genetic algorithm's beta-values.", 10.0f, 180.0f);
 
-        // fill(0, 0, 255);
-        // text("Blue line: Single exponential smoothing", 600.0f, 120.0f);
+        fill(255, 0, 0);
+        text("Red line: ROC Curve using Wiley\'s beta-values.", 10.0f, 150.0f);
 
-        // fill(0, 128, 0);
-        // text("Green line: Double exponential smoothing", 600.0f, 150.0f);
+        textSize(40);
+        fill(0,0,0);
+        text("ROC Curve of \'Pregnant\' data test-set.", 10.0f, 100.0f);       
 
-        // fill(0,0,0);
-        // text("Black line: Triple exponential smoothing", 600.0f, 180.0f);
-
-        // textSize(40);
-        // fill(0,0,0);
-        // text("Forecast of sword sales", 10.0f, 100.0f);       
-
-        // textSize(9);
-        // text("Source: http://eu.wiley.com/WileyCDA/WileyTitle/productCd-111866146X.html", 10.0f, 115.0f);               
+        textSize(9);
+        text("Source: https://www.wiley.com/en-us/Data+Smart%3A+Using+Data+Science+to+Transform+Information+into+Insight-p-9781118661468", 10.0f, 120.0f);               
     }
 
     private void drawAxises()
     {
-        // invertYAxis();
+        invertYAxis();
+        stroke(0, 0, 0);
+
+        //x axis 
+        line(90, 245, 280, 245);   
+
+        //y axis
+        line(90, 245, 90, 500);           
+        popMatrix();         
         
-        // stroke(0, 0, 0);
 
-        // //x axis 
-        // line(40, 30, 920, 30);   
+        // X axis labels        
+        textSize(12);
 
-        // //y axis
-        // line(40, 30, 40, 430);           
+        text("100%", 260, 575);
+        text("50%", 180, 575);
+        text("0%", 95, 575);
 
-        // popMatrix();                    
+        textSize(15);
+        text("X: False Positive Rate", 95, 620);
+        text("Y: True Positive Rate", 95, 640);
+
+
+        // Y axis labels        
+        textSize(12);
+
+        text("0%", 55, 550);
+        text("50%", 55, 430);
+        text("100%", 55, 315);
+
+        textSize(15);
+        // text("False Positive Rate", 95, 615);
     }
 
     private void drawBaseValuesAndAxisesValues()
@@ -163,17 +205,15 @@ public class App extends PApplet
 
     private void drawROC(ArrayList<Tuple<Float, Float>> points)
     {
-        stroke(0, 0, 255);                                  
-        fill(0, 0, 255);
-        
-        float leftPadding = 50.0f;        
+
+        float leftPadding = 10.0f;        
         float firstPointXposition = 40.0f;
         Tuple<Float, Float> previousPointVector = new Tuple<Float, Float>(firstPointXposition, 120.0f);
 
         for (Tuple<Float, Float> currentPoint : points) 
         {
             float shiftedXValue = ((currentPoint.Item1 * XAXIS_OFFSET) + leftPadding) * 10;
-            float shiftedYValue = ((currentPoint.Item2 - YAXIS_OFFSET)) * 20;
+            float shiftedYValue = ((currentPoint.Item2 - YAXIS_OFFSET)) * 250;
 
             //inverting so we dont have to map/flip the y values
             invertYAxis();

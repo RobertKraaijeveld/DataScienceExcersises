@@ -3,6 +3,7 @@ package com.hro.cmi.GeneticAlgorithm;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Random;
 
 import com.hro.cmi.Vector;
 
@@ -14,13 +15,7 @@ public class GeneticIndividual
 
     public GeneticIndividual(double[] values)
     {
-        ByteBuffer bb = ByteBuffer.allocate(values.length * 8);
-        
-        for(double d : values) 
-        {
-            bb.putDouble(d);
-        }
-        this.bytes = bb.array();
+        this.bytes = ToBytes(values);
     }
 
     @Override 
@@ -32,6 +27,17 @@ public class GeneticIndividual
             retString += (" | " + bytes[i] + " | ");
         }
         return retString;
+    }
+
+    public static byte[] ToBytes(double[] values)
+    {
+        ByteBuffer bb = ByteBuffer.allocate(values.length * 8);
+        
+        for(double d : values) 
+        {
+            bb.putDouble(d);
+        }
+        return bb.array();
     }
 
     public static double[] ToDoubles(GeneticIndividual individual)
@@ -48,9 +54,11 @@ public class GeneticIndividual
 
     public void flipByte(int index)
     {
-        for (int i = 0; i < bytes.length; i++)
-        {
-            if(index == i) bytes[i] = (byte) ~this.bytes[i];
-        }
+        double[] bytesAsDoubles = ToDoubles(this);
+
+        Random random = new Random();
+        int randomIndex = random.nextInt((bytesAsDoubles.length - 1) + 1);
+
+        bytesAsDoubles[randomIndex] = bytesAsDoubles[randomIndex] * -1;
     }
 } 

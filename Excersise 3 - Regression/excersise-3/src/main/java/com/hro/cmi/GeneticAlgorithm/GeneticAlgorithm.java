@@ -1,5 +1,7 @@
 package com.hro.cmi.GeneticAlgorithm;
 
+// import org.apache.commons.lang.time.StopWatch;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -11,6 +13,8 @@ import com.hro.cmi.Tuple;
 import com.hro.cmi.Utils;
 import com.hro.cmi.Vector;
 import com.hro.cmi.Regression.MultipleLinearRegression;
+
+import org.junit.rules.Stopwatch;
 
 /// <summary>
 /// Used to get the best set of beta coefficients for a given vector, by minimizing the SSE using a Genetic Algorithm.
@@ -44,6 +48,7 @@ public class GeneticAlgorithm
 
         for (int generation = 0; generation < numIterations; generation++) 
         {
+
             // compute fitness of each Individual in the population
             double[] fitnesses = ComputeFitnesses(currentPopulation);
             ArrayList<GeneticIndividual> nextPopulation = new ArrayList<GeneticIndividual>(Collections.nCopies(populationSize, null)); 
