@@ -15,7 +15,7 @@ import java.text.*;
 
 public class App extends PApplet
 {
-    private static final int APPLET_WIDTH = 700;
+    private static final int APPLET_WIDTH = 1000;
     private static final int APPLET_HEIGHT = 800;
     private static final int YAXIS_OFFSET = -1;
     private static final int XAXIS_OFFSET = 18;
@@ -25,7 +25,8 @@ public class App extends PApplet
         PApplet.main(new String[] { App.class.getName() });
     }
 
-    public void setup() {
+    public void setup()
+    {
         noSmooth();
         noLoop();
         size(APPLET_WIDTH, APPLET_HEIGHT);
@@ -41,15 +42,15 @@ public class App extends PApplet
         ArrayList<Vector> testSet = Parser.parseCsvToPoints("C:\\Projects\\DataScienceFinalRetake\\Excersise 3 - Regression\\excersise-3\\docs\\TestSet.csv");
 
         // Training using genetic algo for getting best betas
-        double crossoverRate = 0.7;
-        double mutationRate = 0.2;
-        int populationSize = 50;
-        int generations = 10;
+        double crossoverRate = 0.75;
+        double mutationRate = 0.1;
+        int populationSize = 10;
+        int generations = 150;
 
         GeneticAlgorithm algo = new GeneticAlgorithm(trainingSet, crossoverRate, mutationRate, true, populationSize, generations);
         GeneticIndividual bestIndividual = algo.Run();
         
-        double[] algoBetas = GeneticIndividual.ToDoubles(bestIndividual);
+        double[] algoBetas = GeneticIndividual.ToDoublesArray(bestIndividual);
         double[] bookBetas = new double[]
         {
             -0.58,	-0.13, -0.15,	0.03, 2.37,	-2.29, -2.03, 4.08,	2.48, 2.95,	1.25, 1.94, 1.10, 1.31, -1.45, 1.80, 1.39, -1.56, 2.08, -0.24
@@ -58,19 +59,19 @@ public class App extends PApplet
         // Running on test set using computed/book betas
         LinearRegression regression = new LinearRegression();
 
-        ArrayList<Vector> vectorsWithRobertsPredictions = regression.Predict(algoBetas, testSet, true);
         ArrayList<Vector> vectorsWithBookPredictions = regression.Predict(bookBetas, testSet, true);
+        ArrayList<Vector> vectorsWithRobertsPredictions = regression.Predict(algoBetas, testSet, true);
 
-        double robertsSSE = regression.GetSse(vectorsWithRobertsPredictions);
         double bookSSE = regression.GetSse(vectorsWithBookPredictions);
+        double robertsSSE = regression.GetSse(vectorsWithRobertsPredictions);
 
         double[] cutOffVals = new double[]
         {
             0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95, 1, 1.05, 1.1, 1.15, 1.2, 1.25
         };
 
-        ArrayList<Tuple<Float, Float>> robertsCurve = regression.GetRocCurve(vectorsWithRobertsPredictions, cutOffVals);
         ArrayList<Tuple<Float, Float>> bookCurve = regression.GetRocCurve(vectorsWithBookPredictions, cutOffVals);
+        ArrayList<Tuple<Float, Float>> robertsCurve = regression.GetRocCurve(vectorsWithRobertsPredictions, cutOffVals);
         
         drawGeneticAlgoValues(robertsSSE, bookSSE, crossoverRate, mutationRate, populationSize, generations);
         drawLegend();

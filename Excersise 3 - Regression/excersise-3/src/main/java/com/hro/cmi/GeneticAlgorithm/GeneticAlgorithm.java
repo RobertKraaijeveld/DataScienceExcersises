@@ -14,6 +14,7 @@ import com.hro.cmi.Utils;
 import com.hro.cmi.Vector;
 import com.hro.cmi.Regression.MultipleLinearRegression;
 
+import org.apache.commons.lang3.time.StopWatch;
 import org.junit.rules.Stopwatch;
 
 /// <summary>
@@ -28,7 +29,10 @@ public class GeneticAlgorithm
     boolean elitism;
     int populationSize;
     int numIterations;
+
     private static Random r = new Random();
+    MultipleLinearRegression multipleLinearRegression;
+
 
     public GeneticAlgorithm(ArrayList<Vector> vectors, Double crossoverRate, Double mutationRate, boolean elitism, int populationSize, int numIterations) 
     {
@@ -38,30 +42,34 @@ public class GeneticAlgorithm
         this.elitism = elitism;
         this.populationSize = populationSize;
         this.numIterations = numIterations;
+
+        this.multipleLinearRegression = new MultipleLinearRegression(this.vectors);
     }
 
-    public GeneticIndividual Run() 
+	public GeneticIndividual Run() 
     {
+        long generationRunTimeSum = 0;
+
         // initialize the first population
         ArrayList<GeneticIndividual> initialPopulation = CreateInitialIndividuals();
         ArrayList<GeneticIndividual> currentPopulation = initialPopulation;
-
+        
         for (int generation = 0; generation < numIterations; generation++) 
         {
+            StopWatch sw = new StopWatch();
+            sw.start();
 
-            // compute fitness of each Individual in the population
-            double[] fitnesses = ComputeFitnesses(currentPopulation);
-            ArrayList<GeneticIndividual> nextPopulation = new ArrayList<GeneticIndividual>(Collections.nCopies(populationSize, null)); 
+            currentPopulation = ComputeFitnesses(currentPopulation); 
+	        ArrayList<GeneticIndividual> nextPopulation = new ArrayList<GeneticIndividual>(Collections.nCopies(populationSize, null)); 
 
-            // applying elitism (daddy Marx does not approve)
+            // applying elitism (Karl Marx does not approve)
             int startIndex;
             if (elitism) 
             {
-                startIndex = 1;
-                ArrayList<Tuple<GeneticIndividual, Double>> populationWithFitness = GetPopulationWithFitness(currentPopulation, fitnesses);
+                GeneticIndividual bestIndividual = Collections.max(currentPopulation,Comparator.comparing(i -> i.currentFitness));
+                nextPopulation.set(0, bestIndividual);
 
-                Tuple<GeneticIndividual, Double> bestIndividual = Collections.max(populationWithFitness,Comparator.comparing(i -> i.Item2));
-                nextPopulation.set(0, bestIndividual.Item1);
+                startIndex = 1;
             } 
             else 
             {
@@ -70,15 +78,15 @@ public class GeneticAlgorithm
 
             // create the Individuals of the next generation
             for (int newDouble = startIndex; newDouble < populationSize; newDouble++) 
-            {
-                Tuple<GeneticIndividual, GeneticIndividual> parents = selectTwoParents(currentPopulation, fitnesses);
-
+            {           	
+                Tuple<GeneticIndividual, GeneticIndividual> parents = selectTwoParents(currentPopulation);   
+                
                 // do a crossover between the selected parents to generate two children (with a
                 // certain probability, crossover does not happen and the two parents are kept
                 // unchanged)
                 Tuple<GeneticIndividual, GeneticIndividual> offspring;
-
-                double randomVal = r.nextDouble();
+                
+            	double randomVal = r.nextDouble();
                 if (randomVal < crossoverRate) 
                 {
                     offspring = crossover(parents);
@@ -87,69 +95,60 @@ public class GeneticAlgorithm
                 {
                     offspring = parents;
                 }
-
+                
                 // save the two children in the next population (after mutation)
                 nextPopulation.set(newDouble++, mutation(offspring.Item1, mutationRate));
-
+                
                 if (newDouble < populationSize) // there is still space for the second children inside the population
                 {
-                    nextPopulation.set(newDouble, mutation(offspring.Item2, mutationRate));
+                	nextPopulation.set(newDouble, mutation(offspring.Item2, mutationRate));    
                 }
             }
 
             // the new population becomes the current one
             currentPopulation = nextPopulation;
+
+
+            sw.stop();
+            generationRunTimeSum += sw.getTime();
         }
 
-        // recompute the fitnesses on the final population and return the best individual
-        ArrayList<Double> finalFitnesses = new ArrayList<>();
-        for (GeneticIndividual value : currentPopulation) {
-            finalFitnesses.add(ComputeFitnessOfIndividual(value));
-        }
+        GeneticIndividual bestFinalIndividual = Collections.max(currentPopulation,Comparator.comparing(i -> i.currentFitness));
 
         System.out.println("___________________________________________________");
         System.out.println(" ");
         System.out.println("Genetic algorithm finished");
         System.out.println("___________________________________________________");
-        System.out.println("Best fitness = " + Collections.max(finalFitnesses));
-        System.out.println("Average fitness = " + (Utils.sum(finalFitnesses) / finalFitnesses.size()));
+        System.out.println("Best fitness = " + bestFinalIndividual.currentFitness);
+        System.out.println("Average time taken per generation = " + generationRunTimeSum / this.numIterations + " ms");
 
         // Returning individual with highest fitness
         double bestFitnessYet = Double.NEGATIVE_INFINITY;
         GeneticIndividual bestIndividualYet = null;
 
-        for (int i = 0; i < currentPopulation.size(); i++) {
+        for (int i = 0; i < currentPopulation.size(); i++) 
+        {
             GeneticIndividual individual = currentPopulation.get(i);
-            double fitnessOfIndividual = finalFitnesses.get(i);
+            double fitnessOfIndividual = individual.currentFitness;
 
-            if (fitnessOfIndividual > bestFitnessYet) {
+            if (fitnessOfIndividual > bestFitnessYet) 
+            {
                 bestFitnessYet = fitnessOfIndividual;
                 bestIndividualYet = individual;
             }
         }
-
         return bestIndividualYet;
     }
 
-    private ArrayList<Tuple<GeneticIndividual, Double>> GetPopulationWithFitness(ArrayList<GeneticIndividual> currentPopulation, double[] fitnesses) 
-    {
-        ArrayList<Tuple<GeneticIndividual, Double>> populationWithFitnesses = new ArrayList<>();
 
-        for (GeneticIndividual individual : currentPopulation) 
-        {
-            populationWithFitnesses.add(new Tuple<GeneticIndividual, Double>(individual, ComputeFitnessOfIndividual(individual)));
-        }
-        return populationWithFitnesses;
-    }
-
-    private double[] ComputeFitnesses(ArrayList<GeneticIndividual> individuals) 
+    private ArrayList<GeneticIndividual> ComputeFitnesses(ArrayList<GeneticIndividual> individuals) 
     {
-        double[] fitnesses = new double[individuals.size()];
-        for (int i = 0; i < individuals.size(); i++) 
+        for (GeneticIndividual currentIndividual : individuals) 
         {
-            fitnesses[i] = ComputeFitnessOfIndividual(individuals.get(i));
+            double newFitnessForCurrentIndividual = ComputeFitnessOfIndividual(currentIndividual); 
+            currentIndividual.currentFitness = newFitnessForCurrentIndividual;
         }
-        return fitnesses;
+        return individuals;
     }
 
     private ArrayList<GeneticIndividual> CreateInitialIndividuals() 
@@ -174,14 +173,17 @@ public class GeneticAlgorithm
 
     private double ComputeFitnessOfIndividual(GeneticIndividual individual)
     {
-        double[] valuesOfIndividual = GeneticIndividual.ToDoubles(individual);
-        MultipleLinearRegression multipleLinearRegression = new MultipleLinearRegression();
+        StopWatch sw = new StopWatch();
+        sw.start();
 
         double totalSSE = 0.0;
         for (Vector v : this.vectors) 
         {
-            totalSSE += multipleLinearRegression.RunAndReturnSSE(Utils.To2DArrayWithSingle2ndElement(valuesOfIndividual), v); 
+            totalSSE += this.multipleLinearRegression.RunAndReturnSSE(GeneticIndividual.ToDoublesMatrix(individual), v); 
         }
+
+        sw.stop();
+        System.out.println("ComputeFitnessOfIndividual time: " + sw.getTime());
 
         // Higher SSE is worse, so we multiply by -1 to make higher SSE's return a lower fitness value.
         return Double.MAX_VALUE - totalSSE;
@@ -191,10 +193,10 @@ public class GeneticAlgorithm
      * ROULETTE WHEEL SELECTION
      */
 
-    private Tuple<GeneticIndividual, GeneticIndividual> selectTwoParents(ArrayList<GeneticIndividual> population, double[] fitnesses) 
+    private Tuple<GeneticIndividual, GeneticIndividual> selectTwoParents(ArrayList<GeneticIndividual> population) 
     {
         ArrayList<GeneticIndividual> chosenParents = new ArrayList<GeneticIndividual>();
-        ArrayList<Tuple<Double, Double>> wheelSections = getRouletteWheelSections(population, fitnesses);
+        ArrayList<Tuple<Double, Double>> wheelSections = getRouletteWheelSections(population);
 
         while (chosenParents.size() < 2) 
         {
@@ -213,12 +215,20 @@ public class GeneticAlgorithm
                 }
             }
         }
+        
         return new Tuple<GeneticIndividual, GeneticIndividual>(chosenParents.get(0), chosenParents.get(1));
     }
 
-    private static ArrayList<Tuple<Double, Double>> getRouletteWheelSections(ArrayList<GeneticIndividual> population, double[] fitnesses) 
+    private static ArrayList<Tuple<Double, Double>> getRouletteWheelSections(ArrayList<GeneticIndividual> population) 
     {
         ArrayList<Tuple<Double, Double>> wheelSections = new ArrayList<>();
+        double[] fitnesses = new double[population.size()];
+
+        for(int j = 0; j < population.size(); j++)
+        {
+            fitnesses[j] = population.get(j).currentFitness;
+        }
+
 
         double totalFitness = Utils.sum(fitnesses);
         ArrayList<Double> fitnessesAsPercentages = Utils.calculatePercentagesList(fitnesses, totalFitness);
@@ -241,13 +251,16 @@ public class GeneticAlgorithm
 
     private static Tuple<GeneticIndividual, GeneticIndividual> crossover(Tuple<GeneticIndividual, GeneticIndividual> parents) 
     {
-        int crossoverIndex = Utils.getExistingRandomIndex(parents.Item1.bytes, parents.Item2.bytes);
+        byte[] parent1FlattenedBytes = Utils.FlattenBytes2DArray(parents.Item1.bytes);
+        byte[] parent2FlattenedBytes = Utils.FlattenBytes2DArray(parents.Item2.bytes);
+
+        int crossoverIndex = Utils.getExistingRandomIndex(parent1FlattenedBytes, parent2FlattenedBytes);
 
         GeneticIndividual firstChild = new GeneticIndividual(new double[GeneticIndividual.DIMENSION]);
         GeneticIndividual secondChild = new GeneticIndividual(new double[GeneticIndividual.DIMENSION]);
 
-        Tuple<byte[], byte[]> fatherSplit = Utils.splitArrayOnIndex(parents.Item1.bytes, crossoverIndex);
-        Tuple<byte[], byte[]> motherSplit = Utils.splitArrayOnIndex(parents.Item2.bytes, crossoverIndex);
+        Tuple<byte[][], byte[][]> fatherSplit = Utils.splitMatrixOnIndex(parents.Item1.bytes, crossoverIndex);
+        Tuple<byte[][], byte[][]> motherSplit = Utils.splitMatrixOnIndex(parents.Item2.bytes, crossoverIndex);
 
         firstChild.bytes = Utils.concatenate(fatherSplit.Item1, motherSplit.Item2);
         secondChild.bytes = Utils.concatenate(motherSplit.Item1, fatherSplit.Item2);
@@ -261,7 +274,7 @@ public class GeneticAlgorithm
         for (int i = 0; i < populationMember.bytes.length; i++) 
         {
             randomPercent = Utils.getRandomDoubleWithMinMax(r, 0.0, 100.0);
-            if (randomPercent < mutationRate) populationMember.flipByte(i);
+            if (randomPercent < mutationRate) populationMember.flipValue(i);
         }
         return populationMember;
     }

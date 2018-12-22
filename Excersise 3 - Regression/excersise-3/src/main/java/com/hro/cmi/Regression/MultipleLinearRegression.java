@@ -1,19 +1,37 @@
 package com.hro.cmi.Regression;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+
 import com.hro.cmi.Vector;
+
+import org.apache.commons.lang3.time.StopWatch;
 
 import Jama.Matrix;
 import Jama.QRDecomposition;
 
-// SOURCE: https://introcs.cs.princeton.edu/java/97data/MultipleLinearRegression.java.html
+// SOURCE (Partially): https://introcs.cs.princeton.edu/java/97data/MultipleLinearRegression.java.html
 public class MultipleLinearRegression 
 {
     private int N; // number of independent variables
     private int p; // number of dependent variables
     private Matrix beta; // regression coefficients
-    private double SSE; // sum of squared
-    private double SST; // sum of squared
+    private double SSE; 
 
+    private HashMap<Vector, Matrix> vectorMatrices = new HashMap<Vector, Matrix>();
+
+    // Pre-computing the matrixes of all vectors so we dont have to recompute them each iteration
+    public MultipleLinearRegression(ArrayList<Vector> allVectors)
+    {
+        for (Vector vector : allVectors) 
+        {
+            vectorMatrices.put(vector, new Matrix(vector.values, vector.values.length));    
+        }
+    }
+
+
+    // TODO: REPLACE THIS WITH A BETTER METHOD
     public double RunAndReturnSSE(double[][] betas, Vector vector) 
     {
         if (betas.length != vector.values.length) throw new RuntimeException("dimensions don't agree");
@@ -23,26 +41,11 @@ public class MultipleLinearRegression
         Matrix betasMatrix = new Matrix(betas);
 
         // create matrix from vector
-        Matrix vectorMatrix = new Matrix(vector.values, N);
+        Matrix vectorMatrix = vectorMatrices.get(vector);
 
         // find least squares solution
         QRDecomposition qr = new QRDecomposition(betasMatrix);
         beta = qr.solve(vectorMatrix);
-
-        // mean of vector.values[] values
-        double sum = 0.0;
-        for (int i = 0; i < N; i++)
-        {
-            sum += vector.values[i];
-        }
-        double mean = sum / N;
-
-        // total variation to be accounted for
-        for (int i = 0; i < N; i++) 
-        {
-            double dev = vector.values[i] - mean;
-            SST += dev * dev;
-        }
 
         // variation not accounted for
         Matrix residuals = betasMatrix.times(beta).minus(vectorMatrix);
@@ -51,11 +54,8 @@ public class MultipleLinearRegression
         return SSE;
     }
 
-    public double beta(int j) {
+    public double beta(int j) 
+    {
         return beta.get(j, 0);
-    }
-
-    public double R2() {
-        return 1.0 - SSE/SST;
     }
 }

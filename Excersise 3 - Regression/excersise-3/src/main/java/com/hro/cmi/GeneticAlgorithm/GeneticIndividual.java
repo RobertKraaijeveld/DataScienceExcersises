@@ -5,17 +5,19 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Random;
 
+import com.hro.cmi.Utils;
 import com.hro.cmi.Vector;
 
 
 public class GeneticIndividual
 {
     public static final int DIMENSION = Vector.DIMENSION;
-    public byte[] bytes;
+    public byte[][] bytes; // 2d array because multi regression lib needs 2d array
+    public double currentFitness;
 
     public GeneticIndividual(double[] values)
     {
-        this.bytes = ToBytes(values);
+        this.bytes = ToBytesMatrix(values);
     }
 
     @Override 
@@ -29,36 +31,46 @@ public class GeneticIndividual
         return retString;
     }
 
-    public static byte[] ToBytes(double[] values)
+    public static byte[][] ToBytesMatrix(double[] values)
     {
-        ByteBuffer bb = ByteBuffer.allocate(values.length * 8);
-        
-        for(double d : values) 
+        byte[][] bytes = new byte[values.length][8]; 
+
+        for(int i = 0; i < values.length; i++) 
         {
-            bb.putDouble(d);
+            bytes[i] = Utils.DoubleToBytes(values[i]);
         }
-        return bb.array();
+        return bytes;
     }
 
-    public static double[] ToDoubles(GeneticIndividual individual)
+    public static double[][] ToDoublesMatrix(GeneticIndividual individual)
     {
-        ByteBuffer bb = ByteBuffer.wrap(individual.bytes);
-        double[] doubles = new double[individual.bytes.length / 8];
+        double[][] doubles = new double[individual.bytes.length][1];
 
-        for(int i = 0; i < doubles.length; i++) 
+        for(int i = 0; i < individual.bytes.length; i++) 
         {
-            doubles[i] = bb.getDouble();
+            doubles[i][0] = Utils.BytesToDouble(individual.bytes[i]);
         }
         return doubles;
     }
 
-    public void flipByte(int index)
+    public static double[] ToDoublesArray(GeneticIndividual individual)
     {
-        double[] bytesAsDoubles = ToDoubles(this);
+        double[] doubles = new double[individual.bytes.length];
+        
+        for(int i = 0; i < individual.bytes.length; i++)
+        {
+            doubles[i] = Utils.BytesToDouble(individual.bytes[i]);
+        }
+        return doubles;
+    }
+
+    public void flipValue(int index)
+    {
+        double[][] bytesAsDoubles = ToDoublesMatrix(this);
 
         Random random = new Random();
         int randomIndex = random.nextInt((bytesAsDoubles.length - 1) + 1);
 
-        bytesAsDoubles[randomIndex] = bytesAsDoubles[randomIndex] * -1;
+        bytesAsDoubles[randomIndex][0] = bytesAsDoubles[randomIndex][0] * -1;
     }
 } 

@@ -1,6 +1,7 @@
 package com.hro.cmi;
 
 import java.lang.reflect.Array;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Random;
@@ -40,11 +41,11 @@ public class Utils
             return random.nextInt(a.length - 1);                
     } 
 
-    public static Tuple<byte[], byte[]> splitArrayOnIndex(byte[] array, int index)
+    public static Tuple<byte[][], byte[][]> splitMatrixOnIndex(byte[][] array, int index)
     {
-        byte[] firstArray = Arrays.copyOfRange(array, 0, index);
-        byte[] secondArray = Arrays.copyOfRange(array, index, array.length);
-        return new Tuple<byte[], byte[]>(firstArray, secondArray);
+        byte[][] firstArray = Arrays.copyOfRange(array, 0, index);
+        byte[][] secondArray = Arrays.copyOfRange(array, index, array.length);
+        return new Tuple<byte[][], byte[][]>(firstArray, secondArray);
     }
 
     public static double sum(double...values) 
@@ -67,27 +68,55 @@ public class Utils
         return result;
     }
 
-    public static byte[] concatenate(byte[] a, byte[] b)
+    public static byte[][] concatenate(byte[][] a, byte[][] b)
     {
         int aLen = a.length;
         int bLen = b.length;
     
-        @SuppressWarnings("unchecked")
-        byte[] c = (byte[]) Array.newInstance(a.getClass().getComponentType(), aLen + bLen);
+        byte[][] c = (byte[][]) Array.newInstance(a.getClass().getComponentType(), aLen + bLen);
         System.arraycopy(a, 0, c, 0, aLen);
         System.arraycopy(b, 0, c, aLen, bLen);
     
         return c;
     }
 
-    public static double[][] To2DArrayWithSingle2ndElement(double[] oneDimArray)
-    {
-        double[][] ret = new double[oneDimArray.length][1];
 
-        for (int i = 0; i < oneDimArray.length; i++) 
+    // These REALLY should be one method that uses a generic param, but since Java sucks at casting thats not gonna happen
+    public static double[] FlattenDouble2DArray(double[][] twoDArray)
+    {
+        double[] ret = new double[twoDArray.length];
+        for(int i = 0; i < twoDArray.length; i++)
         {
-            ret[i][0] = oneDimArray[i];    
+            ret[i] = twoDArray[i][0];
         }
         return ret;
+    }
+
+    public static byte[] FlattenBytes2DArray(byte[][] twoDArray)
+    {
+        byte[] ret = new byte[twoDArray.length];
+        for(int i = 0; i < twoDArray.length; i++)
+        {
+            ret[i] = twoDArray[i][0];
+        }
+        return ret;
+    }
+
+    
+    public static byte[] DoubleToBytes(double d)
+    {
+        byte[] output = new byte[8];
+        long lng = Double.doubleToLongBits(d);
+
+        for(int i = 0; i < 8; i++) 
+        {
+            output[i] = (byte) ((lng >> ((7 - i) * 8)) & 0xff);
+        }
+        return output;
+    }
+
+    public static double BytesToDouble(byte[] bytes)
+    {
+        return ByteBuffer.wrap(bytes).getDouble();
     }
 }

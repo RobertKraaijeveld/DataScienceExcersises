@@ -18,12 +18,12 @@ public class LinearRegression
         for (Vector vector : input) 
         {
             double prediction = SumProduct(betas, vector.values);
-
             if(logistic) prediction = LogisticLinkFunction(prediction);
 
-            Vector predictedVector = vector.Clone();
-            predictedVector.PredictedPregnancyLikelihood = prediction;            
-            vectorsWithPredictions.add(predictedVector);
+            Vector vectorWithPrediction = new Vector(vector.values, vector.IsActuallyPregnant);
+            vectorWithPrediction.PredictedPregnancyLikelihood = prediction;
+
+            vectorsWithPredictions.add(vectorWithPrediction);
         }
         return vectorsWithPredictions;
     }
@@ -49,8 +49,6 @@ public class LinearRegression
 
         for (int i = 0; i < positiveClassificationCutoffs.length; i++) 
         {
-            // TODO: FIX ONE INDICATOR AT A TIME. TEST USING BOOK VALS
-
             double currentcutoff = positiveClassificationCutoffs[i];
             double precision = Precision(predictions, positiveClassificationCutoffs[i]);
 
@@ -58,7 +56,6 @@ public class LinearRegression
             float trueNegativesCount = (float) TrueNegativesRate(predictions, positiveClassificationCutoffs[i]);
             float falsePositivesForThisCutoff = 1.0f - (float) TrueNegativesRate(predictions, positiveClassificationCutoffs[i]);
 
-            boolean x = true;
             curveValues.add(new Tuple<Float, Float>(falsePositivesForThisCutoff, truePositivesForThisCutoff));
         }
         return curveValues;
