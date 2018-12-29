@@ -9,7 +9,7 @@ namespace DataScienceFinalRetake
         static void Main(string[] args)
         {
             Dictionary<int, Vector> vectors = Parser.ParseToVectors();
-            RunKmeansAndPrintBest(K: 4, amountOfIterations: 100, distanceMeasure: new CosineDistance(), vectors: vectors);
+            RunKmeansAndPrintBest(K: 4, amountOfIterations: 1000, distanceMeasure: new EuclideanDistance(), vectors: vectors);
         }
 
         private static void RunKmeansAndPrintBest(int K, int amountOfIterations, IDistance distanceMeasure, Dictionary<int, Vector> vectors)

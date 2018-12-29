@@ -2,6 +2,8 @@ package com.hro.cmi;
 
 import java.util.ArrayList;
 
+import javax.management.openmbean.ArrayType;
+
 public class TES extends Forecast
 {
     public int seasonLength; 
@@ -19,143 +21,101 @@ public class TES extends Forecast
     public ArrayList<Vector2> forecastFunction(VariableHolder variables) 
     {
         ArrayList<Vector2> result = new ArrayList<>();
+        ArrayList<Double> seasonalComponents = this.GetInitialSeasonalComponents();
 
-        ArrayList<Double> seasonals = this.computeInitialSeasonalComponents();
-        double trend = this.computeInitialTrend();
-        double lastSmoothedY = 0;
-        double currentSmoothedY = 0;
-        double xValueForCurrentForecastedPoint = this.originalVectors.get(this.originalVectors.size() - 1).x;
+        double level = 0;
+        double trend = 0; 
+        double forecastedXValue = this.originalVectors.get(this.originalVectors.size() - 1).x; 
 
-        for(int i = 0; i < this.originalVectors.size() + this.forecastAmount - 1; i++)
+        for(int i = 0; i < this.originalVectors.size() + this.forecastAmount; i++)
         {
-
-            if(i == 0) // First point so not applying smoothing
+            if(i == 0) // starting, setting initial vals
             {
-                Vector2 originalValue = originalVectors.get(i);
-
-                currentSmoothedY = originalValue.y;
-                result.add(originalValue);
-
-                continue;
+                level = this.originalVectors.get(0).y;
+                trend = this.GetInitialTrend();
+                result.add(this.originalVectors.get(0));
             }
-            else if (i >= this.originalVectors.size()) // Forecasting in progress
+
+            if(i >= this.originalVectors.size()) // forecasting
             {
-                double m = i -  originalVectors.size() + 1;
-                double smoothedY = (currentSmoothedY + m * trend) + seasonals.get(i % this.seasonLength);
+                int m = i - this.originalVectors.size() + 1;
+                double forecastedYValue = (level + m * trend) + seasonalComponents.get(i % this.seasonLength);
 
-                Vector2 smoothedVector = new Vector2(xValueForCurrentForecastedPoint, smoothedY);
-                result.add(smoothedVector);
+                result.add(new Vector2(forecastedXValue, forecastedYValue));
 
-                xValueForCurrentForecastedPoint += 1;
+                forecastedXValue += 1;
             }
-            else // Smoothing of existing points
+            else // smoothing existing points
             {
-                Vector2 originalValue = originalVectors.get(i);
+                Vector2 currentValue = this.originalVectors.get(i);
+                double previousLevel = level;
 
-                lastSmoothedY = currentSmoothedY;
-                currentSmoothedY = variables.alpha * (originalValue.y - seasonals.get(i % this.seasonLength)
-                                                      + (1 - variables.alpha) * (currentSmoothedY + trend));
+                level = DES.GetLevelValue(currentValue, variables, previousLevel, trend);
+                trend = DES.GetTrendValue(currentValue, variables, level, previousLevel, trend);
                 
-                trend = variables.beta * (currentSmoothedY - lastSmoothedY) + (1 - variables.beta) * trend;
+                double newSeasonalComponent = GetSeasonalComponentValue(currentValue, variables, 
+                                                                        level, seasonalComponents.get(i % this.seasonLength));
+                seasonalComponents.set(i % this.seasonLength, newSeasonalComponent);
 
-                seasonals.set(i % this.seasonLength, variables.gamma * (originalValue.y - currentSmoothedY)
-                                                     + (1 - variables.gamma) * seasonals.get(i % this.seasonLength));
-
-                result.add(new Vector2(originalValue.x, currentSmoothedY 
-                                                        + trend 
-                                                        + seasonals.get(i % this.seasonLength)));
+                double smoothedYValue = level + trend + seasonalComponents.get(i % this.seasonLength);
+                result.add(new Vector2(currentValue.x, smoothedYValue));
             }
         }
+
         return result;
     }
 
-    @Override
-    public ErrorMeasurer getErrorMeasurements()
+    private double GetInitialTrend()
     {
-        ArrayList<VariableHolder> variableHolders = new ArrayList<>();
-
-        for(double alpha = 0.01f; alpha < 1.0f; alpha += 0.1f)
+        double sum = 0;
+        for(int i = 0; i < this.seasonLength; i++)
         {
-            VariableHolder variableHolderForThisAlphaBetaGammaValue = new VariableHolder();
-            variableHolderForThisAlphaBetaGammaValue.alpha = alpha;
+            double seasonBeginValue = this.originalVectors.get(i).y;
+            double seasonEndValue = this.originalVectors.get(i + this.seasonLength).y;
 
-            for(double beta = 0.01f; beta < 1.0f; beta += 0.01f)
-            {
-                variableHolderForThisAlphaBetaGammaValue.beta = beta;
-
-                for(double gamma = 0.01f; gamma < 1.0f; gamma += 0.01f)
-                {
-                    variableHolderForThisAlphaBetaGammaValue.gamma = gamma;
-
-                    ArrayList<Vector2> smoothedVectors = this.forecastFunction(variableHolderForThisAlphaBetaGammaValue);
-                
-                    double errorValue = this.computeError(smoothedVectors); 
-                    variableHolderForThisAlphaBetaGammaValue.error = errorValue;
-    
-                    variableHolders.add(variableHolderForThisAlphaBetaGammaValue);    
-                }            
-            }
+            sum += (double) (seasonEndValue - seasonBeginValue) / this.seasonLength; 
         }
-        return new ErrorMeasurer(variableHolders);
+        return sum / this.seasonLength;
     }
 
-    @Override
-    public double computeError(ArrayList<Vector2> smoothedVectors) 
+    private ArrayList<Double> GetInitialSeasonalComponents()
     {
-        double totalTESerror = 0.0f;
-        for (int i = unforecastableVectorAmount; i < originalVectors.size(); i++) 
-        {
-            double combinedSmoothAndTrendValue = smoothedVectors.get(i - 1).y;
-            totalTESerror += Math.pow((combinedSmoothAndTrendValue - originalVectors.get(i).y), 2); 
-        }   
-        return (double) Math.sqrt(totalTESerror/ (originalVectors.size() - unforecastableVectorAmount)); 
-    }
-
-
-    private ArrayList<Double> computeInitialSeasonalComponents()
-    {
-        ArrayList<Double> seasonalComponents = new ArrayList<>();
         ArrayList<Double> seasonAverages = new ArrayList<>();
+        ArrayList<Double> seasonalComponents = new ArrayList<>();
+        int numberOfSeasons = getAmountOfSeasons();
 
-        int numberOfSeasons = this.getAmountOfSeasons();
+        // Computing season averages
         for(int i = 0; i < numberOfSeasons; i++)
         {
-            ArrayList<Vector2> pointsOfCurrentSeason = new ArrayList<Vector2>(originalVectors.subList(this.seasonLength * 1, 
-                                                                                                     (this.seasonLength * 1) + seasonLength)
-                                                                             );
-            double currentSeasonAverage = pointsOfCurrentSeason.stream()
-                                                        .map(v -> v.y)
-                                                        .mapToDouble(Double::doubleValue) // incredibly doofy that this is necessary considering v.y IS A DOUBLE
-                                                        .sum();
-            seasonAverages.add(currentSeasonAverage);
+            int seasonStartIndex = this.seasonLength * i;
+            int seasonEndIndex = this.seasonLength * i + this.seasonLength;
+            
+            ArrayList<Vector2> season = new ArrayList<>(this.originalVectors.subList(seasonStartIndex, seasonEndIndex));
+
+            double seasonSum = season.stream().mapToDouble(v -> v.y).sum();
+            seasonAverages.add(seasonSum / this.seasonLength);
         }
 
-        for(int j = 0; j < this.seasonLength; j++)
+        // Computing initial values
+        for (int j = 0; j < this.seasonLength; j++) 
         {
-            double sumOfValuesOverAverage = 0.0;
+            double sumOfValuesOverAverage = 0;
 
-            for(int z = 0; z < numberOfSeasons; z++)
+            for (int z = 0; z < numberOfSeasons; z++) 
             {
-                sumOfValuesOverAverage += originalVectors.get((this.seasonLength * z) + j).y - seasonAverages.get(z);
+                sumOfValuesOverAverage += this.originalVectors.get(this.seasonLength * z + j).y - seasonAverages.get(z);
             }
-            seasonalComponents.add(j, sumOfValuesOverAverage);
+            seasonalComponents.add(sumOfValuesOverAverage);
         }
 
         return seasonalComponents;
     }
 
-    // Computes the initial trend value: In DES, this was simply the first two values, but in TES
-    // this is a little bit more complicated.
-    private double computeInitialTrend()
+
+    private double GetSeasonalComponentValue(Vector2 inputVector, VariableHolder variables, 
+                                             double levelValue, double previousValOfThisSeasonalComponent)
     {
-        double initialTrendValue = 0.0;    
-        
-        for(int i = 0; i < this.seasonLength; i++)
-        {
-            initialTrendValue += (this.originalVectors.get( + this.seasonLength).y - this.originalVectors.get(i).y) 
-                                  / this.seasonLength;  
-        }
-        return initialTrendValue;
+        return variables.seasonalSmoothing * (inputVector.y - levelValue) + (1 - variables.seasonalSmoothing) * previousValOfThisSeasonalComponent;
     }
 
     private int getAmountOfSeasons()

@@ -32,8 +32,8 @@ public class DES extends Forecast
 
         for (int i = unforecastableVectorAmount; i < originalVectors.size(); i++) 
         {
-            smoothedVectors.add(computeSmoothedVector(smoothedVectors, variables.alpha, i));
-            this.trendSmoothedVectors.add(computeTrendSmoothedVector(smoothedVectors, variables.beta, i));
+            smoothedVectors.add(computeSmoothedVector(smoothedVectors, variables, i));
+            this.trendSmoothedVectors.add(computeTrendSmoothedVector(smoothedVectors, variables, i));
         }
         Vector2 lastSmoothedVector = smoothedVectors.get(smoothedVectors.size() - 1);
         Vector2 lastTrendSmoothedVector = this.trendSmoothedVectors.get(this.trendSmoothedVectors.size() - 1);        
@@ -41,46 +41,6 @@ public class DES extends Forecast
         smoothedVectors.addAll(getDESForecast(lastSmoothedVector, lastTrendSmoothedVector));
         return smoothedVectors;
     }
-
-
-    @Override
-    public ErrorMeasurer getErrorMeasurements()
-    {
-        ArrayList<VariableHolder> variableHolders = new ArrayList<>();
-
-        for(double alpha = 0.01f; alpha < 1.0f; alpha += 0.1f)
-        {
-            VariableHolder variableHolderForThisAlphaAndBetaValue = new VariableHolder();
-            variableHolderForThisAlphaAndBetaValue.alpha = alpha;
-
-            for(double beta = 0.01f; beta < 1.0f; beta += 0.01f)
-            {
-                variableHolderForThisAlphaAndBetaValue.beta = beta;
-
-                ArrayList<Vector2> smoothedVectors = this.forecastFunction(variableHolderForThisAlphaAndBetaValue);
-                
-                double errorValue = this.computeError(smoothedVectors); 
-                variableHolderForThisAlphaAndBetaValue.error = errorValue;
-
-                variableHolders.add(variableHolderForThisAlphaAndBetaValue);
-            }
-        }
-        return new ErrorMeasurer(variableHolders);
-    }
-
-    @Override
-    public double computeError(ArrayList<Vector2> smoothedVectors) 
-    {
-        double totalDESerror = 0.0f;
-        for (int i = unforecastableVectorAmount; i < originalVectors.size(); i++) 
-        {
-            double combinedSmoothAndTrendValue = smoothedVectors.get(i - 1).y + trendSmoothedVectors.get(i - 1).y;
-            totalDESerror += Math.pow((combinedSmoothAndTrendValue - originalVectors.get(i).y), 2); 
-        }   
-        return (double) Math.sqrt(totalDESerror / (originalVectors.size() - unforecastableVectorAmount)); 
-    }
-
-
 
     private ArrayList<Vector2> getDESForecast(Vector2 lastSmoothedVector, Vector2 lastTrendSmoothedVector)
     {
@@ -94,50 +54,69 @@ public class DES extends Forecast
         return forecastedVectors;
     }
 
-    private Vector2 computeSmoothedVector(ArrayList<Vector2> smoothedVectors, double alpha, int position)
+    private Vector2 computeSmoothedVector(ArrayList<Vector2> smoothedVectors, VariableHolder variables, int vectorIndex)
     {
-        double originalVectorX = originalVectors.get(position).x;     
+        Vector2 originalVector = this.originalVectors.get(vectorIndex);
         double smoothedY; 
 
-        if(position < unforecastableVectorAmount)
+        if(vectorIndex < unforecastableVectorAmount)
         {
-            smoothedY = originalVectors.get(position).y;
-            return new Vector2(originalVectorX, smoothedY);
+            smoothedY = originalVectors.get(vectorIndex).y;
+            return new Vector2(originalVector.x, smoothedY);
         }
         else
         {
-            //X is a time series so we dont smooth it
-            smoothedY = alpha * originalVectors.get(position).y + (1 - alpha)
-                       * (smoothedVectors.get(position - 1).y + this.trendSmoothedVectors.get(position - 1).y);
+            double previousLevelValue = smoothedVectors.get(vectorIndex - 1).y;
+            double previousTrendValue = this.trendSmoothedVectors.get(vectorIndex - 1).y; 
 
-            return new Vector2(originalVectorX, smoothedY);
+            smoothedY = DES.GetLevelValue(originalVector, variables, previousLevelValue, previousTrendValue);
+
+            return new Vector2(originalVector.x, smoothedY);
         }
     }
 
-    private Vector2 computeTrendSmoothedVector(ArrayList<Vector2> smoothedVectors, double beta, int position)
+    private Vector2 computeTrendSmoothedVector(ArrayList<Vector2> smoothedVectors, VariableHolder variables, int vectorIndex)
     {
-        double originalVectorX = originalVectors.get(position).x;
-        double smoothedY = smoothedVectors.get(position).y;
+        Vector2 originalVector = originalVectors.get(vectorIndex);
+        double smoothedY = smoothedVectors.get(vectorIndex).y;
         
-        if(position < unforecastableVectorAmount)
+        if(vectorIndex < unforecastableVectorAmount)
         {
-            if (position > 0)
+            if (vectorIndex > 0)
             {
                 double placeHolderForUnsmoothable = originalVectors.get(unforecastableVectorAmount).y 
                                                     - originalVectors.get(unforecastableVectorAmount - 1).y;
 
-                return new Vector2(originalVectorX, placeHolderForUnsmoothable);
+                return new Vector2(originalVector.x, placeHolderForUnsmoothable);
             }
             else
-                return new Vector2(originalVectorX, smoothedY);
+                return new Vector2(originalVector.x, smoothedY);
         }
         else
         {
-            //X is a time series so we dont smooth it
-            double combinedSmoothAndTrendValueForecast = beta * (smoothedVectors.get(position).y - smoothedVectors.get(position - 1).y)
-                                                      + (1.0f - beta) * this.trendSmoothedVectors.get(position - 1).y;
+            double previousLevelValue = smoothedVectors.get(vectorIndex - 1).y;
+            double currentLevelValue = smoothedVectors.get(vectorIndex).y;
+            double previousTrendValue = this.trendSmoothedVectors.get(vectorIndex - 1).y; 
 
-            return new Vector2(originalVectorX, combinedSmoothAndTrendValueForecast);
+            double combinedSmoothAndTrendValueForecast = DES.GetTrendValue(originalVector, variables, 
+                                                                           currentLevelValue, previousLevelValue, previousTrendValue);
+
+            return new Vector2(originalVector.x, combinedSmoothAndTrendValueForecast);
         }
+    }
+
+
+    public static double GetLevelValue(Vector2 inputVector, VariableHolder variables, 
+                                 double previousLevelValue, double currentTrendValue)
+    {
+        return variables.levelSmoothing * inputVector.y + (1 - variables.levelSmoothing) 
+               * (previousLevelValue + currentTrendValue);
+    }
+
+    public static double GetTrendValue(Vector2 inputVector, VariableHolder variables, 
+                                 double currentLevelValue, double previousLevelValue, double currentTrendValue)
+    { 
+        return variables.trendSmoothing * (currentLevelValue - previousLevelValue)
+               + (1 - variables.trendSmoothing) * currentTrendValue;
     }
 }

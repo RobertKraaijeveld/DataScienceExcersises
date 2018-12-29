@@ -134,13 +134,15 @@ public class App extends PApplet
 
     private void drawSES()
     {
-        int foreCastAmount = 3;
+        int foreCastAmount = 10;
         SES sesForecast = new SES(this.swordSalesPoints, foreCastAmount);
-        ArrayList<Vector2> sesSwordSalesPoints = sesForecast.runForecastWithBestError();
+
+        // (Values are from Data Smart book)            
+        VariableHolder vars = new VariableHolder();
+        vars.levelSmoothing = 0.73;
         
-        stroke(0, 0, 255);                                  
-        fill(0, 0, 255);
-        drawGivenVectors(sesSwordSalesPoints);
+        ArrayList<Vector2> allSesSwordSalesPoints = sesForecast.forecastFunction(vars);
+        ArrayList<Vector2> sesForecastedVectors = new ArrayList<Vector2>(allSesSwordSalesPoints.subList(allSesSwordSalesPoints.size() - (foreCastAmount), allSesSwordSalesPoints.size()));
 
         textSize(18);
         fill(0, 0, 255);
@@ -148,47 +150,57 @@ public class App extends PApplet
 
         textSize(13);
         fill(0,0,0);
-        text("SES Alpha: " + Double.toString(sesForecast.bestVariables.alpha).substring(0, 6), 10.0f, 170.0f);
-        text("SES Error: " + Double.toString(sesForecast.bestVariables.error).substring(0, 6), 10.0f, 185.0f);
+        text("SES Alpha: " + Double.toString(vars.levelSmoothing), 10.0f, 170.0f);
+        text("SES Error: " + Double.toString(sesForecast.computeError(allSesSwordSalesPoints)), 10.0f, 185.0f);
+
+        stroke(0, 0, 255);                                  
+        fill(0, 0, 255);
+        
+        drawGivenVectors(sesForecastedVectors);
     }
 
     private void drawDES()
     {
-        int foreCastAmount = 3;
+        int foreCastAmount = 11;
         DES desForecast = new DES(this.swordSalesPoints, foreCastAmount);
-        ArrayList<Vector2> desSwordSalesPoints = desForecast.runForecastWithBestError();
-        
-        stroke(0, 128, 0);                                  
-        fill(0, 128, 0);
-        drawGivenVectors(desSwordSalesPoints);
 
+        // (Values are from Data Smart book)            
+        VariableHolder vars = new VariableHolder();
+        vars.levelSmoothing = 0.659100046560163;
+        vars.trendSmoothing = 0.053117180460981;
+        ArrayList<Vector2> allDesSwordSalesPoints = desForecast.forecastFunction(vars);
+        ArrayList<Vector2> desForecastedVectors = new ArrayList<Vector2>(allDesSwordSalesPoints.subList(allDesSwordSalesPoints.size() - (foreCastAmount), allDesSwordSalesPoints.size()));
+
+        
         textSize(18);
         fill(0, 128, 0);
         text("DES Measurements", 200.0f, 145.0f);
 
         textSize(13);
         fill(0,0,0);
-        text("DES Alpha: " + Double.toString(desForecast.bestVariables.alpha).substring(0, 6), 200.0f, 170.0f);
-        text("DES Beta: " + Double.toString(desForecast.bestVariables.beta).substring(0, 6), 200.0f, 185.0f);   
-        text("DES Error: " + Double.toString(desForecast.bestVariables.error).substring(0, 6), 200.0f, 200.0f);           
+        text("DES Alpha: " + Double.toString(vars.levelSmoothing), 200.0f, 170.0f);
+        text("DES Beta: " + Double.toString(vars.trendSmoothing), 200.0f, 185.0f);   
+        text("DES Error: " + Double.toString(desForecast.computeError(allDesSwordSalesPoints)), 200.0f, 200.0f);     
+        
+        stroke(0, 128, 0);                                  
+        fill(0, 128, 0);
+
+        drawGivenVectors(desForecastedVectors);
     }
 
     private void drawTES()
     {
-        int foreCastAmount = 10;
-        int seasonLength = 2;
+        int foreCastAmount = 12;
+        int seasonLength = 12;
         TES tesForecast = new TES(this.swordSalesPoints, foreCastAmount, seasonLength);
 
-
-        // Hand-picked vars            
+        // (Values are from Data Smart book)            
         VariableHolder tesVars = new VariableHolder();
-        tesVars.alpha = 0.22299999999999999947747474;
-        tesVars.beta = 0.1;
-        tesVars.gamma = 0.99;
-        ArrayList<Vector2> tesSwordSalesPoints = tesForecast.forecastFunction(tesVars);
-
-        // Least error function (about 20 SSE), very little smoothing done
-        // ArrayList<Vector2> tesSwordSalesPoints = tesForecast.forecastFunction(tesVars);
+        tesVars.levelSmoothing = 0.307003546945751;
+        tesVars.trendSmoothing = 0.228914336546831;
+        tesVars.seasonalSmoothing = 0;
+        ArrayList<Vector2> allTesSwordSalesPoints = tesForecast.forecastFunction(tesVars);
+        ArrayList<Vector2> tesForecastedVectors = new ArrayList<Vector2>(allTesSwordSalesPoints.subList(allTesSwordSalesPoints.size() - (foreCastAmount), allTesSwordSalesPoints.size()));
 
 
         textSize(18);
@@ -197,14 +209,14 @@ public class App extends PApplet
 
         textSize(13);
         fill(0,0,0);
-        text("TES Alpha: " + Double.toString(tesVars.alpha), 400.0f, 170.0f);
-        text("TES Beta: " + Double.toString(tesVars.beta), 400.0f, 185.0f);   
-        text("TES Gamma: " + Double.toString(tesVars.gamma), 400.0f, 200.0f);   
-        text("TES Error: " + Double.toString(tesVars.error).substring(0, 6), 400.0f, 215.0f); 
+        text("TES Alpha: " + Double.toString(tesVars.levelSmoothing), 400.0f, 170.0f);
+        text("TES Beta: " + Double.toString(tesVars.trendSmoothing), 400.0f, 185.0f);   
+        text("TES Gamma: " + Double.toString(tesVars.seasonalSmoothing), 400.0f, 200.0f);   
+        text("TES Error: " + Double.toString(tesForecast.computeError(allTesSwordSalesPoints)).substring(0, 6), 400.0f, 215.0f); 
 
         stroke(0,0,0);                                  
         fill(0,0,0);
-        drawGivenVectors(tesSwordSalesPoints);
+        drawGivenVectors(tesForecastedVectors);
     }
 
     private void drawGivenVectors(ArrayList<Vector2> vectors)

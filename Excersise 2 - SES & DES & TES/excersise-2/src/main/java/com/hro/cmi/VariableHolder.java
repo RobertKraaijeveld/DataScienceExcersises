@@ -2,8 +2,7 @@ package com.hro.cmi;
 
 public class VariableHolder
 {
-    public double alpha = 0.0;
-    public double beta = 0.0;
-    public double gamma = 0.0;
-    public double error = Double.MAX_VALUE;
+    public double levelSmoothing = 0.0;
+    public double trendSmoothing = 0.0;
+    public double seasonalSmoothing = 0.0;
 }

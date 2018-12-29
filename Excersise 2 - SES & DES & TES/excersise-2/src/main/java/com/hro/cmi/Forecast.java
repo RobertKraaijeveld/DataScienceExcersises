@@ -7,8 +7,6 @@ public abstract class Forecast
 {
     public ArrayList<Vector2> originalVectors = new ArrayList<>();
 
-    public VariableHolder bestVariables;
-
     public int unforecastableVectorAmount;
     public int forecastAmount; 
     
@@ -21,22 +19,13 @@ public abstract class Forecast
     public abstract ArrayList<Vector2> forecastFunction(VariableHolder variables);
 
     // Uses SSE to compute the error of the given smoothed vectors.
-    public abstract double computeError(ArrayList<Vector2> smoothedVectors);
-    
-    // Runs the smoothing and forecast functions for alpha values ranging from 0.01 to 1,
-    // returns the combination of alpha and error with the lowest error.
-    public abstract ErrorMeasurer getErrorMeasurements();
-
-    /*
-    COMMON METHODS
-    */
-
-    public ArrayList<Vector2> runForecastWithBestError()
+    public double computeError(ArrayList<Vector2> smoothedVectors)
     {
-        VariableHolder variablesWithSmallestError = this.getErrorMeasurements().getBestAlphaAndBeta();
-        this.bestVariables = variablesWithSmallestError;
-
-        return forecastFunction(variablesWithSmallestError); 
+        double totalSSE = 0.0f;
+        for (int i = unforecastableVectorAmount; i < originalVectors.size(); i++) 
+        {
+            totalSSE += Math.pow((smoothedVectors.get(i).y - originalVectors.get(i).y), 2); 
+        }   
+        return (double) totalSSE; 
     }
-
 }

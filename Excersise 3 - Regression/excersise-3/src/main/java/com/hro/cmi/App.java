@@ -42,10 +42,10 @@ public class App extends PApplet
         ArrayList<Vector> testSet = Parser.parseCsvToPoints("C:\\Projects\\DataScienceFinalRetake\\Excersise 3 - Regression\\excersise-3\\docs\\TestSet.csv");
 
         // Training using genetic algo for getting best betas
-        double crossoverRate = 0.75;
-        double mutationRate = 0.1;
-        int populationSize = 10;
-        int generations = 150;
+        double crossoverRate = 0.65;
+        double mutationRate = 0.05;
+        int populationSize = 20;
+        int generations = 250;
 
         GeneticAlgorithm algo = new GeneticAlgorithm(trainingSet, crossoverRate, mutationRate, true, populationSize, generations);
         GeneticIndividual bestIndividual = algo.Run();
@@ -59,31 +59,33 @@ public class App extends PApplet
         // Running on test set using computed/book betas
         LinearRegression regression = new LinearRegression();
 
-        ArrayList<Vector> vectorsWithBookPredictions = regression.Predict(bookBetas, testSet, true);
-        ArrayList<Vector> vectorsWithRobertsPredictions = regression.Predict(algoBetas, testSet, true);
+        ArrayList<Vector> vectorsWithBookLogisticPredictions = regression.Predict(bookBetas, testSet, true);
+        ArrayList<Vector> vectorsWithRobertsLogisticPredictions = regression.Predict(algoBetas, testSet, true);
 
-        double bookSSE = regression.GetSse(vectorsWithBookPredictions);
-        double robertsSSE = regression.GetSse(vectorsWithRobertsPredictions);
+        double bookLogisticSSE = regression.GetSse(vectorsWithBookLogisticPredictions);
+        double robertsLogisticSSE = regression.GetSse(vectorsWithRobertsLogisticPredictions);
 
         double[] cutOffVals = new double[]
         {
             0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95, 1, 1.05, 1.1, 1.15, 1.2, 1.25
         };
 
-        ArrayList<Tuple<Float, Float>> bookCurve = regression.GetRocCurve(vectorsWithBookPredictions, cutOffVals);
-        ArrayList<Tuple<Float, Float>> robertsCurve = regression.GetRocCurve(vectorsWithRobertsPredictions, cutOffVals);
-        
-        drawGeneticAlgoValues(robertsSSE, bookSSE, crossoverRate, mutationRate, populationSize, generations);
-        drawLegend();
+        ArrayList<Tuple<Float, Float>> bookLogisticCurve = regression.GetRocCurve(vectorsWithBookLogisticPredictions, cutOffVals);
+        ArrayList<Tuple<Float, Float>> robertsLogisticCurve = regression.GetRocCurve(vectorsWithRobertsLogisticPredictions, cutOffVals);
+
+
+        drawGeneticAlgoValues(robertsLogisticSSE, bookLogisticSSE, 
+                              crossoverRate, mutationRate, populationSize, generations);
+        drawLegend(); 
         drawAxises();
 
-        stroke(0, 0, 255);                                  
+        stroke(0, 0, 255);
         fill(0, 0, 255);
-        drawROC(robertsCurve);
+        drawROC(robertsLogisticCurve);
 
-        stroke(255, 0, 0);                                  
+        stroke(255, 0, 0);
         fill(255, 0, 0);
-        drawROC(bookCurve);
+        drawROC(bookLogisticCurve);
     }
 
 
@@ -91,40 +93,44 @@ public class App extends PApplet
     * Methods for drawing UI 
     */
 
-    private void drawGeneticAlgoValues(double robertsSSE, double bookSSE, double crossoverRate, double mutationRate, int populationSize, int generations)
+    private void drawGeneticAlgoValues(double robertsLogisticSSE, double bookLogisticSSE, 
+                                       double crossoverRate, double mutationRate, int populationSize, int generations)
     {
         textSize(12);
         fill(0,0,0);
 
-        text("Genetic Algo SSE: " + robertsSSE, 95, 680.0f);       
-        text("Book SSE: " + bookSSE, 95, 700.0f);       
-        text("Crossover rate: " + crossoverRate, 95, 720.0f);       
-        text("Mutation rate: " + mutationRate, 95, 740.0f);       
-        text("Population size: " + populationSize, 95, 760.0f);       
-        text("Amount of generations: " + generations, 95, 780.0f);       
+        text("Genetic Algo SSE (Logistic): " + robertsLogisticSSE, 95, 660.0f);       
+        text("Book SSE (Logistic): " + bookLogisticSSE, 95, 680.0f);      
+
+        text("Crossover rate: " + crossoverRate, 395, 660.0f);       
+        text("Mutation rate: " + mutationRate, 395, 680.0f);       
+        text("Population size: " + populationSize, 395, 700.0f);       
+        text("Amount of generations: " + generations, 395, 720.0f);       
     }
         
 
     private void drawLegend()
     {
-        textSize(16);
-
-        fill(0, 0, 255);
-        text("Blue line: ROC Curve using implemented genetic algorithm's beta-values.", 10.0f, 180.0f);
-
-        fill(255, 0, 0);
-        text("Red line: ROC Curve using Wiley\'s beta-values.", 10.0f, 150.0f);
-
         textSize(40);
         fill(0,0,0);
-        text("ROC Curve of \'Pregnant\' data test-set.", 10.0f, 100.0f);       
+        text("ROC Curve of \'Pregnant\' data test-set.", 10.0f, 100.0f);     
 
         textSize(9);
+        fill(0,0,0);
         text("Source: https://www.wiley.com/en-us/Data+Smart%3A+Using+Data+Science+to+Transform+Information+into+Insight-p-9781118661468", 10.0f, 120.0f);               
+
+        textSize(16);
+        fill(255, 0, 0);
+        text("Red line: ROC Curve of logistic prediction using Wiley\'s beta-values.", 10.0f, 210.0f);
+
+        fill(0, 0, 255);
+        text("Blue line: ROC Curve of logistic prediction using implemented genetic algorithm's beta-values.", 10.0f, 240.0f);
     }
 
     private void drawAxises()
     {
+        fill(0,0,0);
+
         invertYAxis();
         stroke(0, 0, 0);
 
@@ -144,8 +150,8 @@ public class App extends PApplet
         text("0%", 95, 575);
 
         textSize(15);
-        text("X: False Positive Rate", 95, 620);
-        text("Y: True Positive Rate", 95, 640);
+        text("X: False Positive Rate", 95, 600);
+        text("Y: True Positive Rate", 95, 620);
 
 
         // Y axis labels        
@@ -156,47 +162,6 @@ public class App extends PApplet
         text("100%", 55, 315);
 
         textSize(15);
-        // text("False Positive Rate", 95, 615);
-    }
-
-    private void drawBaseValuesAndAxisesValues()
-    {
-        // double firstPointPositionY = 30.0f;
-
-        // // X Axis values
-        // int counter = 1;
-        // for (Vector2 currentVector : swordSalesPoints) 
-        // {
-        //     if(counter % 5 == 0 || counter == 1)
-        //     {
-        //         double shiftedXValue = (currentVector.x * XAXIS_OFFSET) + 40;
-
-        //         DecimalFormat decimalFormat = new DecimalFormat("#0");
-        //         String numberAsString = decimalFormat.format(currentVector.x);
-                
-        //         text(numberAsString, (float) shiftedXValue, 788);
-        //     }
-        //     counter++;
-        // }
-
-        // //Y axis values 
-        // float valueStep = 0;
-        // float positionStep = 750.0f;
-
-        // for(int i = 0; i < 100; i++)
-        // {
-        //     if(i % 5 == 0 || counter == 1)
-        //     {
-        //         positionStep -= 20.0f;
-        //         valueStep += 20.0f;
-        //         text(Float.toString(valueStep), 0.0f, (float) firstPointPositionY + positionStep);            
-        //     }
-        // }
-
-        // stroke(255, 0, 0);  
-        // fill(255, 0, 0);
-                                        
-        // drawGivenVectors(swordSalesPoints);
     }
 
 
@@ -206,7 +171,6 @@ public class App extends PApplet
 
     private void drawROC(ArrayList<Tuple<Float, Float>> points)
     {
-
         float leftPadding = 10.0f;        
         float firstPointXposition = 40.0f;
         Tuple<Float, Float> previousPointVector = new Tuple<Float, Float>(firstPointXposition, 120.0f);

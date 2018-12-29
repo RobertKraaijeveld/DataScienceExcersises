@@ -183,7 +183,7 @@ public class GeneticAlgorithm
         }
 
         sw.stop();
-        System.out.println("ComputeFitnessOfIndividual time: " + sw.getTime());
+        // System.out.println("ComputeFitnessOfIndividual time: " + sw.getTime());
 
         // Higher SSE is worse, so we multiply by -1 to make higher SSE's return a lower fitness value.
         return Double.MAX_VALUE - totalSSE;
