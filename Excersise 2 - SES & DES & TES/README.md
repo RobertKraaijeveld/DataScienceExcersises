@@ -6,5 +6,4 @@ The forecasts almost perfectly match the forecasts that the textbook provides.
 
 Run using:
 
-`cd excersise-2/`
-`mvn exec:java`
+`cd excersise-2/` then `mvn exec:java`

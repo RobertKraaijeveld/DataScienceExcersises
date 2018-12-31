@@ -8,5 +8,4 @@ You can change the value of K, the distance used and the amount of iterations in
 Differences with the reported SSE / Silhouette values in the 'Data Smart' textbook can be explained by the fact that this K-Means implementation is ran multiple times, and that this implementation uses the 'Forgy Method' for picking random starting centers for each cluster, rather than finding the optimal starting centers as it is done in the textbook.
 
 Run using 
-`dotnet restore`
-`dotnet run`
+`dotnet restore` then `dotnet run`

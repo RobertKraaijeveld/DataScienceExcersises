@@ -1,4 +1,4 @@
-# Excersise 3 - Logitisc Regression
+# Excersise 3 - Logistic Regression
 
 This Java program visualises the SSE and ROC curve of a logistic regression applied to the 'Pregnant' dataset, which is included in the 'Data Smart' textbook. The ROC curve/SSE when using the provided beta coefficients within the textbook is included as well, for reference.
 
@@ -8,8 +8,7 @@ You can change the settings for the Genetic Algorithm (Crossover rate, mutation 
 
 Run using:
 
-`cd excersise-3/`
-`mvn exec:java`
+`cd excersise-3/` then `mvn exec:java`
 
 The genetic algorithm might take a little while to finish, depending on the population size and the amount of generations that you use. 
 
