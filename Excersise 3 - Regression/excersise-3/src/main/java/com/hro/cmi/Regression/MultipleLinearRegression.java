@@ -12,7 +12,6 @@ import org.apache.commons.math3.stat.regression.OLSMultipleLinearRegression;
 import Jama.Matrix;
 import Jama.QRDecomposition;
 
-// SOURCE (Partially): https://introcs.cs.princeton.edu/java/97data/MultipleLinearRegression.java.html
 public class MultipleLinearRegression 
 {
     private HashMap<Vector, Matrix> vectorMatrices = new HashMap<Vector, Matrix>();

@@ -9,7 +9,7 @@ namespace DataScienceFinalRetake
         static void Main(string[] args)
         {
             Dictionary<int, Vector> vectors = Parser.ParseToVectors();
-            RunKmeansAndPrintBest(K: 4, amountOfIterations: 1000, distanceMeasure: new EuclideanDistance(), vectors: vectors);
+            RunKmeansAndPrintBest(K: 4, amountOfIterations: 150, distanceMeasure: new EuclideanDistance(), vectors: vectors);
         }
 
         private static void RunKmeansAndPrintBest(int K, int amountOfIterations, IDistance distanceMeasure, Dictionary<int, Vector> vectors)
@@ -32,7 +32,7 @@ namespace DataScienceFinalRetake
                                           .First(); 
                                           
             Console.WriteLine("-------------------------------------------------------");
-            Console.WriteLine($"DONE! Avg SSE: {averageSse}, Avg silhouette: {averageSilhouette}");
+            Console.WriteLine($"DONE! Avg SSE (of all iterations): {averageSse}, Avg silhouette (of all iterations): {averageSilhouette}");
             Console.WriteLine("BEST ITERATION:");
             Console.WriteLine("-------------------------------------------------------");
 

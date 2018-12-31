@@ -58,8 +58,9 @@ namespace DataScienceFinalRetake
         {
             var offersCountsForCentroid = GetOffersCountPerCentroid();
 
-            Console.WriteLine("Final SSE: " + this.FinalSSE);
-            Console.WriteLine("Final silhouette: " + this.FinalSilhouette);
+            Console.WriteLine("Distance used in this iteration: " + Vector.Distance.GetName());
+            Console.WriteLine("Final SSE of this iteration: " + this.FinalSSE);
+            Console.WriteLine("Final silhouette of this iteration: " + this.FinalSilhouette);
 
             foreach (var centroidNr in AllCentroids.Keys)
             {

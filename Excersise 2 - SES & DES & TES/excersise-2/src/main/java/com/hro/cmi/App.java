@@ -204,7 +204,7 @@ public class App extends PApplet
 
 
         textSize(18);
-        fill(0, 128, 0);
+        fill(0, 0, 0);
         text("TES Measurements", 400.0f, 145.0f);
 
         textSize(13);
